@@ -4,9 +4,7 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Student Registration</title>
-    <!-- Tailwind CSS for styling -->
     <script src="https://cdn.tailwindcss.com"></script>
-    <!-- jQuery CDN -->
     <script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
     <style>
         /* Custom Styles */
@@ -29,25 +27,26 @@
         .form-input:focus {
             transform: translateY(-1px);
         }
+        /* Custom styling for date input icon (optional, often cleaner without) */
+        input[type="date"]::-webkit-calendar-picker-indicator {
+            cursor: pointer;
+            filter: invert(0.5) sepia(1) saturate(5) hue-rotate(100deg); /* Adjusts color for visibility */
+        }
     </style>
 </head>
 <body class="flex items-center justify-center p-4">
 
     <div class="glass-panel w-full max-w-2xl p-8 relative">
-        <!-- Header -->
         <div class="text-center mb-8">
             <h1 class="text-3xl font-bold text-gray-800 tracking-tight">University Registration</h1>
             <p class="text-emerald-600 font-medium mt-2">Programming Assignment 2</p>
         </div>
 
-        <!-- Registration Form -->
         <form id="regForm" action="process.php" method="POST" class="space-y-6">
             
-            <!-- Personal Info -->
             <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
                 <div>
                     <label class="block text-sm font-semibold text-gray-700 mb-1">First Name</label>
-                    <!-- Changed focus rings to Emerald -->
                     <input type="text" name="firstname" required class="form-input w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-emerald-500 focus:border-emerald-500 outline-none" placeholder="Jane">
                 </div>
                 <div>
@@ -58,16 +57,23 @@
 
             <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
                 <div>
+                    <label class="block text-sm font-semibold text-gray-700 mb-1">Date of Birth</label>
+                    <input type="date" name="dob" required class="form-input w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-emerald-500 focus:border-emerald-500 outline-none">
+                </div>
+                <div>
                     <label class="block text-sm font-semibold text-gray-700 mb-1">Email Address</label>
                     <input type="email" name="email" required class="form-input w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-emerald-500 focus:border-emerald-500 outline-none" placeholder="jane.smith@university.edu">
                 </div>
+            </div>
+
+            <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
                 <div>
                     <label class="block text-sm font-semibold text-gray-700 mb-1">Phone Number</label>
                     <input type="tel" name="phone" required class="form-input w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-emerald-500 focus:border-emerald-500 outline-none" placeholder="+1 (555) 123-4567">
                 </div>
+                 <div></div> 
             </div>
 
-            <!-- Course Selection -->
             <div>
                 <label class="block text-sm font-semibold text-gray-700 mb-2">Select Program</label>
                 <div class="relative">
@@ -83,7 +89,6 @@
                 </div>
             </div>
 
-            <!-- Gender -->
             <div class="bg-gray-50 p-4 rounded-lg border border-gray-100">
                 <label class="block text-sm font-semibold text-gray-700 mb-2">Gender</label>
                 <div class="flex space-x-8">
@@ -98,14 +103,12 @@
                 </div>
             </div>
 
-            <!-- Submit Button (Emerald Green) -->
             <button type="submit" class="w-full bg-emerald-600 hover:bg-emerald-700 text-white font-bold py-3 px-4 rounded-lg transition duration-300 shadow-md hover:shadow-lg flex items-center justify-center">
                 <span>Submit Application</span>
                 <svg class="w-5 h-5 ml-2" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 7l5 5m0 0l-5 5m5-5H6"></path></svg>
             </button>
         </form>
 
-        <!-- Result Display Area (Hidden by default, used for Preview Demo) -->
         <div id="resultArea" class="hidden">
             <div class="text-center mb-6 pt-4 border-t border-gray-100">
                 <div class="w-16 h-16 bg-emerald-100 rounded-full flex items-center justify-center mx-auto mb-4">
@@ -117,8 +120,7 @@
             
             <div class="bg-emerald-50 rounded-lg p-6 border border-emerald-100">
                 <div id="dynamicContent" class="space-y-3">
-                    <!-- Content injected here -->
-                </div>
+                    </div>
             </div>
 
             <button onclick="location.reload()" class="mt-6 w-full border-2 border-emerald-600 text-emerald-700 hover:bg-emerald-50 font-semibold py-2 px-4 rounded-lg transition duration-300">
@@ -131,26 +133,40 @@
         $(document).ready(function() {
             // == ASSIGNMENT NOTE ==
             // This JQuery logic intercepts the form submit to show you the result
-            // right here in the browser. In production, remove e.preventDefault()
-            // to allow standard PHP processing.
+            // right here in the browser.
             
             $('#regForm').submit(function(e) {
                 // Prevent actual submission for demo purposes
                 e.preventDefault(); 
                 
-                // 1. Collect Data
+                // 1. Collect Data (ADDED DOB)
                 const firstName = $('input[name="firstname"]').val();
                 const lastname = $('input[name="lastname"]').val();
+                const dob = $('input[name="dob"]').val(); // Get the new date value
                 const email = $('input[name="email"]').val();
                 const phone = $('input[name="phone"]').val();
                 const course = $('select[name="course"]').val();
                 const gender = $('input[name="gender"]:checked').val();
 
-                // 2. Format HTML (Simulating PHP Output)
+                // Function to format Date (optional, makes it look cleaner)
+                function formatDate(dateString) {
+                    if (!dateString) return 'N/A';
+                    const date = new Date(dateString);
+                    // Use locale-specific formatting (e.g., May 15, 2000)
+                    return date.toLocaleDateString('en-US', { year: 'numeric', month: 'long', day: 'numeric' });
+                }
+
+                const formattedDob = formatDate(dob);
+
+                // 2. Format HTML (Simulating PHP Output - ADDED DOB)
                 const formattedHtml = `
                     <div class="flex justify-between border-b border-emerald-200/50 py-2">
                         <span class="font-semibold text-gray-600">Applicant:</span>
                         <span class="text-gray-900 font-medium">${firstName} ${lastname}</span>
+                    </div>
+                    <div class="flex justify-between border-b border-emerald-200/50 py-2">
+                        <span class="font-semibold text-gray-600">Date of Birth:</span>
+                        <span class="text-gray-900 font-medium">${formattedDob}</span>
                     </div>
                     <div class="flex justify-between border-b border-emerald-200/50 py-2">
                         <span class="font-semibold text-gray-600">Email:</span>
@@ -165,18 +181,3 @@
                         <span class="text-emerald-700 font-bold bg-emerald-100 px-2 py-0.5 rounded text-sm">${course}</span>
                     </div>
                     <div class="flex justify-between py-2">
-                        <span class="font-semibold text-gray-600">Gender:</span>
-                        <span class="text-gray-900 font-medium">${gender}</span>
-                    </div>
-                `;
-
-                // 3. Animate Transition
-                $('#regForm').fadeOut(300, function() {
-                    $('#dynamicContent').html(formattedHtml);
-                    $('#resultArea').removeClass('hidden').hide().fadeIn(400);
-                });
-            });
-        });
-    </script>
-</body>
-</html>
