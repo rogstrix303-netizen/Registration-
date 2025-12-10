@@ -1,107 +1,182 @@
-<?php
-// Check if the request method is POST
-if ($_SERVER["REQUEST_METHOD"] == "POST") {
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Student Registration</title>
+    <!-- Tailwind CSS for styling -->
+    <script src="https://cdn.tailwindcss.com"></script>
+    <!-- jQuery CDN -->
+    <script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
+    <style>
+        /* Custom Styles */
+        body {
+            font-family: 'Inter', 'Segoe UI', sans-serif;
+            /* Changed to a Green/Teal gradient */
+            background: linear-gradient(135deg, #ecfdf5 0%, #d1fae5 100%);
+            min-height: 100vh;
+        }
+        .glass-panel {
+            background: rgba(255, 255, 255, 0.98);
+            backdrop-filter: blur(12px);
+            border-radius: 1rem;
+            box-shadow: 0 20px 25px -5px rgba(0, 0, 0, 0.1), 0 10px 10px -5px rgba(0, 0, 0, 0.04);
+            border-top: 4px solid #059669; /* Emerald top border */
+        }
+        .form-input {
+            transition: all 0.2s ease;
+        }
+        .form-input:focus {
+            transform: translateY(-1px);
+        }
+    </style>
+</head>
+<body class="flex items-center justify-center p-4">
 
-    // --- 1. Sanitize and Validate Input ---
-    
-    // Sanitize string inputs
-    $firstName = htmlspecialchars($_POST['firstname'] ?? '');
-    $lastName = htmlspecialchars($_POST['lastname'] ?? '');
-    $email = filter_var($_POST['email'] ?? '', FILTER_SANITIZE_EMAIL);
-    $phone = htmlspecialchars($_POST['phone'] ?? '');
-    $course = htmlspecialchars($_POST['course'] ?? '');
-    $gender = htmlspecialchars($_POST['gender'] ?? '');
+    <div class="glass-panel w-full max-w-2xl p-8 relative">
+        <!-- Header -->
+        <div class="text-center mb-8">
+            <h1 class="text-3xl font-bold text-gray-800 tracking-tight">University Registration</h1>
+            <p class="text-emerald-600 font-medium mt-2">Programming Assignment 2</p>
+        </div>
 
-    // Basic Validation
-    if (empty($firstName) || empty($lastName) || empty($email) || empty($course) || empty($gender)) {
-        http_response_code(400); // Bad Request
-        echo "Error: Required fields are missing.";
-        exit;
-    }
+        <!-- Registration Form -->
+        <form id="regForm" action="process.php" method="POST" class="space-y-6">
+            
+            <!-- Personal Info -->
+            <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
+                <div>
+                    <label class="block text-sm font-semibold text-gray-700 mb-1">First Name</label>
+                    <!-- Changed focus rings to Emerald -->
+                    <input type="text" name="firstname" required class="form-input w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-emerald-500 focus:border-emerald-500 outline-none" placeholder="Jane">
+                </div>
+                <div>
+                    <label class="block text-sm font-semibold text-gray-700 mb-1">Last Name</label>
+                    <input type="text" name="lastname" required class="form-input w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-emerald-500 focus:border-emerald-500 outline-none" placeholder="Smith">
+                </div>
+            </div>
 
-    if (!filter_var($email, FILTER_VALIDATE_EMAIL)) {
-        http_response_code(400);
-        echo "Error: Invalid email format.";
-        exit;
-    }
+            <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
+                <div>
+                    <label class="block text-sm font-semibold text-gray-700 mb-1">Email Address</label>
+                    <input type="email" name="email" required class="form-input w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-emerald-500 focus:border-emerald-500 outline-none" placeholder="jane.smith@university.edu">
+                </div>
+                <div>
+                    <label class="block text-sm font-semibold text-gray-700 mb-1">Phone Number</label>
+                    <input type="tel" name="phone" required class="form-input w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-emerald-500 focus:border-emerald-500 outline-none" placeholder="+1 (555) 123-4567">
+                </div>
+            </div>
 
-    // --- 2. Process Data (Database Insertion/Email Notification) ---
-    /*
-    // In a real application, you would perform database operations here:
-    
-    $servername = "localhost";
-    $username = "db_user";
-    $password = "db_password";
-    $dbname = "university_db";
-    
-    try {
-        $conn = new PDO("mysql:host=$servername;dbname=$dbname", $username, $password);
-        $conn->setAttribute(PDO::ATTR_ERRMODE, PDO::ERRMODE_EXCEPTION);
+            <!-- Course Selection -->
+            <div>
+                <label class="block text-sm font-semibold text-gray-700 mb-2">Select Program</label>
+                <div class="relative">
+                    <select name="course" class="form-input w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-emerald-500 focus:border-emerald-500 outline-none appearance-none bg-white">
+                        <option value="Computer Science">Computer Science</option>
+                        <option value="Information Technology">Information Technology</option>
+                        <option value="Data Science">Data Science</option>
+                        <option value="Software Engineering">Software Engineering</option>
+                    </select>
+                    <div class="pointer-events-none absolute inset-y-0 right-0 flex items-center px-2 text-gray-700">
+                        <svg class="fill-current h-4 w-4" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 20 20"><path d="M9.293 12.95l.707.707L15.657 8l-1.414-1.414L10 10.828 5.757 6.586 4.343 8z"/></svg>
+                    </div>
+                </div>
+            </div>
 
-        $stmt = $conn->prepare("INSERT INTO students (first_name, last_name, email, phone, course, gender) VALUES (?, ?, ?, ?, ?, ?)");
-        $stmt->execute([$firstName, $lastName, $email, $phone, $course, $gender]);
-        
-        // Log success or send confirmation email
-        $status = "success";
-        $message = "Registration successful! Welcome, $firstName.";
+            <!-- Gender -->
+            <div class="bg-gray-50 p-4 rounded-lg border border-gray-100">
+                <label class="block text-sm font-semibold text-gray-700 mb-2">Gender</label>
+                <div class="flex space-x-8">
+                    <label class="inline-flex items-center cursor-pointer">
+                        <input type="radio" name="gender" value="Male" checked class="form-radio text-emerald-600 focus:ring-emerald-500 h-4 w-4">
+                        <span class="ml-2 text-gray-700">Male</span>
+                    </label>
+                    <label class="inline-flex items-center cursor-pointer">
+                        <input type="radio" name="gender" value="Female" class="form-radio text-emerald-600 focus:ring-emerald-500 h-4 w-4">
+                        <span class="ml-2 text-gray-700">Female</span>
+                    </label>
+                </div>
+            </div>
 
-    } catch(PDOException $e) {
-        $status = "error";
-        $message = "Database error: " . $e->getMessage();
-        // Log error for developers
-    }
-    $conn = null;
-    */
+            <!-- Submit Button (Emerald Green) -->
+            <button type="submit" class="w-full bg-emerald-600 hover:bg-emerald-700 text-white font-bold py-3 px-4 rounded-lg transition duration-300 shadow-md hover:shadow-lg flex items-center justify-center">
+                <span>Submit Application</span>
+                <svg class="w-5 h-5 ml-2" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 7l5 5m0 0l-5 5m5-5H6"></path></svg>
+            </button>
+        </form>
 
-    // --- 3. Prepare Final Output (Simulated for this context) ---
-    
-    // Set headers for a clean JSON response (recommended for AJAX/API)
-    // header('Content-Type: application/json');
-    // echo json_encode([
-    //     'status' => 'success',
-    //     'data' => [
-    //         'name' => "$firstName $lastName",
-    //         'program' => $course,
-    //         'email' => $email
-    //     ]
-    // ]);
-    
-    // Alternatively, output the success HTML directly (standard form submission)
-    ?>
-    
-    <!DOCTYPE html>
-    <html lang="en">
-    <head>
-        <meta charset="UTF-8">
-        <title>Registration Confirmation</title>
-        <script src="https://cdn.tailwindcss.com"></script>
-    </head>
-    <body class="bg-gray-100 flex items-center justify-center min-h-screen">
-        <div class="max-w-md w-full bg-white p-8 rounded-lg shadow-xl text-center border-t-4 border-emerald-500">
-            <svg class="w-16 h-16 text-emerald-500 mx-auto mb-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z"></path></svg>
-            <h1 class="text-3xl font-bold text-gray-800 mb-2">Application Received!</h1>
-            <p class="text-lg text-gray-600 mb-6">Thank you, **<?php echo $firstName . " " . $lastName; ?>**.</p>
-            
-            <div class="bg-emerald-50 p-4 rounded-lg text-left">
-                <p class="font-semibold text-gray-700">Details Submitted:</p>
-                <ul class="list-disc list-inside text-sm text-gray-600 space-y-1 mt-2">
-                    <li>**Program:** <?php echo $course; ?></li>
-                    <li>**Email:** <?php echo $email; ?></li>
-                    <li>**Phone:** <?php echo $phone; ?></li>
-                </ul>
-            </div>
-            
-            <a href="index.html" class="mt-6 inline-block bg-emerald-600 hover:bg-emerald-700 text-white font-bold py-2 px-4 rounded-lg transition duration-300">
-                Return to Home
-            </a>
-        </div>
-    </body>
-    </html>
+        <!-- Result Display Area (Hidden by default, used for Preview Demo) -->
+        <div id="resultArea" class="hidden">
+            <div class="text-center mb-6 pt-4 border-t border-gray-100">
+                <div class="w-16 h-16 bg-emerald-100 rounded-full flex items-center justify-center mx-auto mb-4">
+                    <svg class="w-8 h-8 text-emerald-600" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z"></path></svg>
+                </div>
+                <h2 class="text-2xl font-bold text-gray-800">Success!</h2>
+                <p class="text-gray-500">Your application has been processed.</p>
+            </div>
+            
+            <div class="bg-emerald-50 rounded-lg p-6 border border-emerald-100">
+                <div id="dynamicContent" class="space-y-3">
+                    <!-- Content injected here -->
+                </div>
+            </div>
 
-    <?php
-} else {
-    // Handle cases where the script is accessed directly (not via POST)
-    http_response_code(405); // Method Not Allowed
-    echo "This page should only be accessed via the form submission.";
-}
-?>
+            <button onclick="location.reload()" class="mt-6 w-full border-2 border-emerald-600 text-emerald-700 hover:bg-emerald-50 font-semibold py-2 px-4 rounded-lg transition duration-300">
+                Start New Application
+            </button>
+        </div>
+    </div>
+
+    <script>
+        $(document).ready(function() {
+            // == ASSIGNMENT NOTE ==
+            // This JQuery logic intercepts the form submit to show you the result
+            // right here in the browser. In production, remove e.preventDefault()
+            // to allow standard PHP processing.
+            
+            $('#regForm').submit(function(e) {
+                // Prevent actual submission for demo purposes
+                e.preventDefault(); 
+                
+                // 1. Collect Data
+                const firstName = $('input[name="firstname"]').val();
+                const lastname = $('input[name="lastname"]').val();
+                const email = $('input[name="email"]').val();
+                const phone = $('input[name="phone"]').val();
+                const course = $('select[name="course"]').val();
+                const gender = $('input[name="gender"]:checked').val();
+
+                // 2. Format HTML (Simulating PHP Output)
+                const formattedHtml = `
+                    <div class="flex justify-between border-b border-emerald-200/50 py-2">
+                        <span class="font-semibold text-gray-600">Applicant:</span>
+                        <span class="text-gray-900 font-medium">${firstName} ${lastname}</span>
+                    </div>
+                    <div class="flex justify-between border-b border-emerald-200/50 py-2">
+                        <span class="font-semibold text-gray-600">Email:</span>
+                        <span class="text-gray-900 font-medium">${email}</span>
+                    </div>
+                    <div class="flex justify-between border-b border-emerald-200/50 py-2">
+                        <span class="font-semibold text-gray-600">Contact:</span>
+                        <span class="text-gray-900 font-medium">${phone}</span>
+                    </div>
+                    <div class="flex justify-between border-b border-emerald-200/50 py-2">
+                        <span class="font-semibold text-gray-600">Program:</span>
+                        <span class="text-emerald-700 font-bold bg-emerald-100 px-2 py-0.5 rounded text-sm">${course}</span>
+                    </div>
+                    <div class="flex justify-between py-2">
+                        <span class="font-semibold text-gray-600">Gender:</span>
+                        <span class="text-gray-900 font-medium">${gender}</span>
+                    </div>
+                `;
+
+                // 3. Animate Transition
+                $('#regForm').fadeOut(300, function() {
+                    $('#dynamicContent').html(formattedHtml);
+                    $('#resultArea').removeClass('hidden').hide().fadeIn(400);
+                });
+            });
+        });
+    </script>
+</body>
+</html>
